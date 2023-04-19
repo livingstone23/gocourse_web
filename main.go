@@ -1,17 +1,41 @@
 package main
 
 import (
+	"fmt"
 	"git/course_web/internal/user"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func main() {
 
 	//realizamos el ruteo con el paquete de gorilla.mux
 	router := mux.NewRouter()
+
+	_ = godotenv.Load()
+
+	dsn := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		os.Getenv("DATABASE_USER"),
+		os.Getenv("DATABASE_PASSWORD"),
+		os.Getenv("DATABASE_HOST"),
+		os.Getenv("DATABASE_PORT"),
+		os.Getenv("DATABASE_NAME"))
+
+	fmt.Printf(dsn + "\n")
+	fmt.Printf("iniciando Programa\n")
+
+	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	_ = db.Debug()
+
+	//Para habilitar la automigracion
+	_ = db.AutoMigrate(&user.User{})
 
 	//Especificamos el servicio
 	userSrv := user.NewService()
