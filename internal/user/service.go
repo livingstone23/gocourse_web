@@ -8,13 +8,17 @@ type Service interface {
 }
 
 type service struct {
+	repo Repository
 }
 
-func NewService() Service {
-	return &service{}
+func NewService(repo Repository) Service {
+	return &service{
+		repo: repo,
+	}
 }
 
 func (s service) Create(firstName, lastName, email, phone string) error {
 	log.Println("Create user Service")
+	s.repo.Create(&User{})
 	return nil
 }

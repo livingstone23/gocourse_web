@@ -37,8 +37,10 @@ func main() {
 	//Para habilitar la automigracion
 	_ = db.AutoMigrate(&user.User{})
 
+	userRepo := user.NewRepo(db)
+
 	//Especificamos el servicio
-	userSrv := user.NewService()
+	userSrv := user.NewService(userRepo)
 
 	//Importamos nuestro paquete de carpeta interna
 	userEnd := user.MakeEndPoints(userSrv)
