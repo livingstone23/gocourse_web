@@ -2,7 +2,6 @@ package user
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
 	"strings"
@@ -35,7 +34,8 @@ func NewRepo(log *log.Logger, db *gorm.DB) Repository {
 /* Metodo */
 func (repo *repo) Create(user *User) error {
 
-	user.ID = uuid.New().String()
+	//Le quitamos la responsabilidad al repositorio para pasarla a la funcionalidad con Hooks
+	//user.ID = uuid.New().String()
 
 	/*
 		result := repo.db.Create(user)

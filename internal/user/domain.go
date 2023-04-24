@@ -15,3 +15,11 @@ type User struct {
 	UpdatedAt *time.Time     `json:"-"`
 	Deleted   gorm.DeletedAt `json:"-"`
 }
+
+/*BeforeCreate: funcion que permite usando Hook crear el Id usuario*/
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.ID == "" {
+		u.ID = uuid.New().String()
+	}
+	return
+}
