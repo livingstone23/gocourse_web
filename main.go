@@ -21,6 +21,9 @@ func main() {
 
 	_ = godotenv.Load()
 
+	//Habilitamos la funcion del log
+	l := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+
 	dsn := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		os.Getenv("DATABASE_USER"),
 		os.Getenv("DATABASE_PASSWORD"),
@@ -37,10 +40,11 @@ func main() {
 	//Para habilitar la automigracion
 	_ = db.AutoMigrate(&user.User{})
 
-	userRepo := user.NewRepo(db)
+	//Especificamos el repositorio
+	userRepo := user.NewRepo(l, db)
 
 	//Especificamos el servicio
-	userSrv := user.NewService(userRepo)
+	userSrv := user.NewService(l, userRepo)
 
 	//Importamos nuestro paquete de carpeta interna
 	userEnd := user.MakeEndPoints(userSrv)
