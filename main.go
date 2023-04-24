@@ -21,6 +21,9 @@ func main() {
 
 	_ = godotenv.Load()
 
+	//Habilitamos la funcion del log
+	l := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+
 	dsn := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		os.Getenv("DATABASE_USER"),
 		os.Getenv("DATABASE_PASSWORD"),
@@ -37,10 +40,11 @@ func main() {
 	//Para habilitar la automigracion
 	_ = db.AutoMigrate(&user.User{})
 
-	userRepo := user.NewRepo(db)
+	//Especificamos el repositorio
+	userRepo := user.NewRepo(l, db)
 
 	//Especificamos el servicio
-	userSrv := user.NewService(userRepo)
+	userSrv := user.NewService(l, userRepo)
 
 	//Importamos nuestro paquete de carpeta interna
 	userEnd := user.MakeEndPoints(userSrv)
@@ -48,8 +52,9 @@ func main() {
 	//Llamamos a nuestros endpoints
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")
 	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
-	router.HandleFunc("/users", userEnd.Update).Methods("PATCH")
-	router.HandleFunc("/users", userEnd.Delete).Methods("DELETE")
+	router.HandleFunc("/users/{id}", userEnd.Get).Methods("GET")
+	router.HandleFunc("/users/{id}", userEnd.Update).Methods("PATCH")
+	router.HandleFunc("/users/{id}", userEnd.Delete).Methods("DELETE")
 
 	/*
 		router.HandleFunc("/users", getUsers).Methods("Get")
