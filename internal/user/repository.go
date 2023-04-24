@@ -1,15 +1,17 @@
 package user
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
+	"strings"
 )
 
 /*Interface que recibe puntero de un usuario*/
 type Repository interface {
 	Create(user *User) error
-	GetAll() ([]User, error)
+	GetAll(filters Filters) ([]User, error)
 	GetById(id string) (*User, error)
 	Delete(id string) error
 	Update(id string, firstName *string, lastName *string, email *string, phone *string) error
@@ -52,16 +54,29 @@ func (repo *repo) Create(user *User) error {
 	return nil
 }
 
-func (repo *repo) GetAll() ([]User, error) {
+func (repo *repo) GetAll(filters Filters) ([]User, error) {
 	var u []User
 
-	result := repo.db.Model(&u).Order("created_at desc").Find(&u)
+	/*
+		result := repo.db.Model(&u).Order("created_at desc").Find(&u)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+	*/
+
+	//Generamos el objeto database para aplicar filtro
+	tx := repo.db.Model(&u)
+	//Aplicamos el filtro al objeto
+	tx = applyFilters(tx, filters)
+	//Obtenemos el objeto aplicando orden
+	result := tx.Order("created_at desc").Find(&u)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-
 	return u, nil
+
+	//return u, nil
 }
 
 func (repo *repo) GetById(id string) (*User, error) {
@@ -111,4 +126,19 @@ func (repo *repo) Update(id string, firstName *string, lastName *string, email *
 	}
 
 	return nil
+}
+
+/*Funcion encargada de aplicar el filtro*/
+func applyFilters(tx *gorm.DB, filters Filters) *gorm.DB {
+
+	if filters.FirstName != "" {
+		filters.FirstName = fmt.Sprintf("%%%s%%", strings.ToLower(filters.FirstName))
+		tx = tx.Where("lower(first_name) like ?", filters.FirstName)
+	}
+
+	if filters.LastName != "" {
+		filters.LastName = fmt.Sprintf("%%%s%%", strings.ToLower(filters.FirstName))
+		tx = tx.Where("lower(last_name) like ?", filters.LastName)
+	}
+	return tx
 }
