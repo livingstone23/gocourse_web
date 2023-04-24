@@ -1,6 +1,7 @@
 package main
 
 import (
+	"git/course_web/internal/course"
 	"git/course_web/internal/user"
 	"git/course_web/pkg/bootstrap"
 	"github.com/gorilla/mux"
@@ -55,12 +56,20 @@ func main() {
 	//Importamos nuestro paquete de carpeta interna
 	userEnd := user.MakeEndPoints(userSrv)
 
+	//Levantamos los objetos del curso
+	courseRepo := course.NewRepo(db, l)
+	courseSrv := course.NewService(l, courseRepo)
+	courseEnd := course.MakeEndPoints(courseSrv)
+
 	//Llamamos a nuestros endpoints
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")
 	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
 	router.HandleFunc("/users/{id}", userEnd.Get).Methods("GET")
 	router.HandleFunc("/users/{id}", userEnd.Update).Methods("PATCH")
 	router.HandleFunc("/users/{id}", userEnd.Delete).Methods("DELETE")
+
+	//Endpoint del course
+	router.HandleFunc("/courses", courseEnd.Create).Methods("POST")
 
 	/*
 		router.HandleFunc("/users", getUsers).Methods("Get")

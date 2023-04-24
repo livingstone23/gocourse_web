@@ -39,6 +39,7 @@ type service struct {
 }
 */
 
+/*NewService funcion que se encarga de instanciar el servicio*/
 func NewService(log *log.Logger, repo Repository) Service {
 	return &service{
 		log:  log,
