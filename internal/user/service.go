@@ -12,9 +12,10 @@ type (
 	Service interface {
 		Create(firstName, lastName, email, phone string) (*User, error)
 		GetById(id string) (*User, error)
-		GetAll(filters Filters) ([]User, error)
+		GetAll(filters Filters, offset, limit int) ([]User, error)
 		Delete(id string) error
 		Update(id string, firstName *string, lastName *string, email *string, phone *string) error
+		Count(filters Filters) (int, error)
 	}
 
 	service struct {
@@ -67,9 +68,9 @@ func (s service) Create(firstName, lastName, email, phone string) (*User, error)
 	return &user, nil
 }
 
-func (s service) GetAll(filters Filters) ([]User, error) {
+func (s service) GetAll(filters Filters, offset, limit int) ([]User, error) {
 
-	users, err := s.repo.GetAll(filters)
+	users, err := s.repo.GetAll(filters, offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -92,4 +93,9 @@ func (s service) Delete(id string) error {
 
 func (s service) Update(id string, firstName *string, lastName *string, email *string, phone *string) error {
 	return s.repo.Update(id, firstName, lastName, email, phone)
+}
+
+/*Funcion para el metodo count*/
+func (s service) Count(filters Filters) (int, error) {
+	return s.repo.Count(filters)
 }

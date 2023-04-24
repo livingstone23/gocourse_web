@@ -3,8 +3,10 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"git/course_web/pkg/meta"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 type (
@@ -40,6 +42,7 @@ type (
 		Status int         `json:"Status"`
 		Data   interface{} `json:"data,omitempty"`
 		Err    string      `json:"error,omitempty"`
+		Meta   *meta.Meta  `json:"meta,omitempty"`
 	}
 
 	/*
@@ -115,7 +118,28 @@ func makeGetAllEndpoint(s Service) Controller {
 			LastName:  v.Get("Last_name"),
 		}
 
-		users, err := s.GetAll(filters)
+		limit, _ := strconv.Atoi(v.Get("limit"))
+		page, _ := strconv.Atoi(v.Get("page"))
+
+		fmt.Printf("The value of first_name is: %s\n", filters.FirstName)
+		fmt.Printf("The value of limit is: %d\n", limit)
+		fmt.Printf("The value of page is: %d\n", page)
+
+		count, err := s.Count(filters)
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(&Respose{Status: 400, Err: err.Error()})
+			return
+		}
+
+		meta, err := meta.New(page, limit, count)
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(&Respose{Status: 400, Err: err.Error()})
+			return
+		}
+
+		users, err := s.GetAll(filters, meta.Offset(), meta.Limit())
 
 		if err != nil {
 			w.WriteHeader(400)
@@ -126,7 +150,7 @@ func makeGetAllEndpoint(s Service) Controller {
 		}
 		//json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		//json.NewEncoder(w).Encode(users)
-		json.NewEncoder(w).Encode(&Respose{Status: 200, Data: users})
+		json.NewEncoder(w).Encode(&Respose{Status: 200, Data: users, Meta: meta})
 	}
 }
 

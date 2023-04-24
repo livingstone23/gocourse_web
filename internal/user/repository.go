@@ -11,10 +11,11 @@ import (
 /*Interface que recibe puntero de un usuario*/
 type Repository interface {
 	Create(user *User) error
-	GetAll(filters Filters) ([]User, error)
+	GetAll(filters Filters, offset, limit int) ([]User, error)
 	GetById(id string) (*User, error)
 	Delete(id string) error
 	Update(id string, firstName *string, lastName *string, email *string, phone *string) error
+	Count(filters Filters) (int, error)
 }
 
 /*Estructura que hace referencia a la BD*/
@@ -54,7 +55,7 @@ func (repo *repo) Create(user *User) error {
 	return nil
 }
 
-func (repo *repo) GetAll(filters Filters) ([]User, error) {
+func (repo *repo) GetAll(filters Filters, offset, limit int) ([]User, error) {
 	var u []User
 
 	/*
@@ -68,6 +69,10 @@ func (repo *repo) GetAll(filters Filters) ([]User, error) {
 	tx := repo.db.Model(&u)
 	//Aplicamos el filtro al objeto
 	tx = applyFilters(tx, filters)
+
+	//Aplicamos el offset para la paginacion
+	tx = tx.Limit(limit).Offset(offset)
+
 	//Obtenemos el objeto aplicando orden
 	result := tx.Order("created_at desc").Find(&u)
 
@@ -141,4 +146,17 @@ func applyFilters(tx *gorm.DB, filters Filters) *gorm.DB {
 		tx = tx.Where("lower(last_name) like ?", filters.LastName)
 	}
 	return tx
+}
+
+/*Funcion para aplicar el filtro*/
+func (repo *repo) Count(filters Filters) (int, error) {
+	var count int64
+	tx := repo.db.Model(User{})
+	tx = applyFilters(tx, filters)
+	if err := tx.Count(&count).Error; err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+
 }
