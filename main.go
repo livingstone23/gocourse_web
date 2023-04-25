@@ -2,6 +2,7 @@ package main
 
 import (
 	"git/course_web/internal/course"
+	"git/course_web/internal/enrollment"
 	"git/course_web/internal/user"
 	"git/course_web/pkg/bootstrap"
 	"github.com/gorilla/mux"
@@ -61,6 +62,11 @@ func main() {
 	courseSrv := course.NewService(l, courseRepo)
 	courseEnd := course.MakeEndPoints(courseSrv)
 
+	//Levantamos los objetos del enrollment
+	enrollRepo := enrollment.NewRepo(db, l)
+	enrollSrv := enrollment.NewService(l, userSrv, courseSrv, enrollRepo)
+	enrollEnd := enrollment.MakeEndPoints(enrollSrv)
+
 	//Llamamos a nuestros endpoints
 	router.HandleFunc("/users", userEnd.Create).Methods("POST")
 	router.HandleFunc("/users", userEnd.GetAll).Methods("GET")
@@ -74,6 +80,9 @@ func main() {
 	router.HandleFunc("/courses/{id}", courseEnd.Get).Methods("GET")
 	router.HandleFunc("/courses/{id}", courseEnd.Update).Methods("PATCH")
 	router.HandleFunc("/courses/{id}", courseEnd.Delete).Methods("DELETE")
+
+	//Endpoint del course
+	router.HandleFunc("/enrollments", enrollEnd.Create).Methods("POST")
 
 	/*
 		router.HandleFunc("/users", getUsers).Methods("Get")

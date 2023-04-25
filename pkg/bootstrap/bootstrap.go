@@ -49,6 +49,12 @@ func DBConnection() (*gorm.DB, error) {
 		}
 	}
 
+	if os.Getenv("DATABASE_MIGRATE") == "true" {
+		if err := db.AutoMigrate(&domain.Enrollment{}); err != nil {
+			return nil, err
+		}
+	}
+
 	//Retonarmos la base y sin errores
 	return db, nil
 }
