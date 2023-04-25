@@ -70,6 +70,10 @@ func main() {
 
 	//Endpoint del course
 	router.HandleFunc("/courses", courseEnd.Create).Methods("POST")
+	router.HandleFunc("/courses", courseEnd.GetAll).Methods("GET")
+	router.HandleFunc("/courses/{id}", courseEnd.Get).Methods("GET")
+	router.HandleFunc("/courses/{id}", courseEnd.Update).Methods("PATCH")
+	router.HandleFunc("/courses/{id}", courseEnd.Delete).Methods("DELETE")
 
 	/*
 		router.HandleFunc("/users", getUsers).Methods("Get")
